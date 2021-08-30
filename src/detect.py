@@ -4,26 +4,22 @@ import time
 import cv2
 import os
 
-confthres=0.5
+confthres=0.9
 nmsthres=0.1
 path="./"
 yolo_path = "./"
 
 def get_labels(labels_path):
-    # load the COCO class labels our YOLO model was trained on
-    #labelsPath = os.path.sep.join([yolo_path, "yolo_v3/coco.names"])
     lpath=os.path.sep.join([yolo_path, labels_path])
     LABELS = open(lpath).read().strip().split("\n")
     return LABELS
 
 def get_colors(LABELS):
-    # initialize a list of colors to represent each possible class label
     np.random.seed(42)
     COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),dtype="uint8")
     return COLORS
 
 def get_weights(weights_path):
-    # derive the paths to the YOLO weights and model configuration
     weightsPath = os.path.sep.join([yolo_path, weights_path])
     return weightsPath
 
@@ -32,10 +28,9 @@ def get_config(config_path):
     return configPath
 
 def load_model(configpath,weightspath):
-    # load our YOLO object detector trained on COCO dataset (80 classes)
-    print("[INFO] loading YOLO from disk...")
     net = cv2.dnn.readNetFromDarknet(configpath, weightspath)
     return net
+
 def get_predection(image,net,LABELS,COLORS):
     (H, W) = image.shape[:2]
 
@@ -51,7 +46,7 @@ def get_predection(image,net,LABELS,COLORS):
     net.setInput(blob)
     start = time.time()
     layerOutputs = net.forward(ln)
-    print(layerOutputs)
+    # print(layerOutputs)
     end = time.time()
 
     # show timing information on YOLO
@@ -114,13 +109,14 @@ def get_predection(image,net,LABELS,COLORS):
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
             text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
             print(boxes)
-            print(classIDs)
+            #print(classIDs)
             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
     return image
         
 def main():
-    # load our input image and grab its spatial dimensions
-    image = cv2.imread("./yolo_v3/person.jpg")
+
+    vid = cv2.VideoCapture(0)
+
     labelsPath="yolo_v3/coco.names"
     cfgpath="yolo_v3/yolov3.cfg"
     wpath="yolo_v3/yolov3.weights"
@@ -129,11 +125,30 @@ def main():
     Weights=get_weights(wpath)
     nets=load_model(CFG,Weights)
     Colors=get_colors(Lables)
-    res=get_predection(image,nets,Lables,Colors)
-    # image=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-    # show the output image
-    cv2.imshow("Image", res)
-    cv2.waitKey()
+
+    while(True):
+
+        # Capture the video frame
+        # by frame
+        ret, frame = vid.read()
+    
+        # Display the resulting frame
+        # cv2.imshow('frame', frame)
+        
+        # the 'q' button is set as the
+        # quitting button you may use any
+        # desired button of your choice
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        # load our input image and grab its spatial dimensions
+        # image = cv2.imread("./yolo_v3/person.jpg")
+        
+        res=get_predection(frame,nets,Lables,Colors)
+        image=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+        # # show the output image
+        cv2.imshow("frame", res)
+        # cv2.waitKey()
 
 if __name__== "__main__":
   main()
