@@ -50,7 +50,7 @@ def get_predection(image,net,LABELS,COLORS):
     end = time.time()
 
     # show timing information on YOLO
-    print("[INFO] YOLO took {:.6f} seconds".format(end - start))
+    #print("[INFO] YOLO took {:.6f} seconds".format(end - start))
 
     # initialize our lists of detected bounding boxes, confidences, and
     # class IDs, respectively
@@ -88,6 +88,8 @@ def get_predection(image,net,LABELS,COLORS):
                 # update our list of bounding box coordinates, confidences,
                 # and class IDs
                 boxes.append([x, y, int(width), int(height)])
+                #boxes.append([x, y, int(width/10), int(height/10)])
+                print(f"center of the object: x = {x} and y = {y}")
                 confidences.append(float(confidence))
                 classIDs.append(classID)
 
@@ -108,47 +110,7 @@ def get_predection(image,net,LABELS,COLORS):
             color = [int(c) for c in COLORS[classIDs[i]]]
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
             text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
-            print(boxes)
+            #print(boxes)
             #print(classIDs)
             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
     return image
-        
-def main():
-
-    vid = cv2.VideoCapture(0)
-
-    labelsPath="yolo_v3/coco.names"
-    cfgpath="yolo_v3/yolov3.cfg"
-    wpath="yolo_v3/yolov3.weights"
-    Lables=get_labels(labelsPath)
-    CFG=get_config(cfgpath)
-    Weights=get_weights(wpath)
-    nets=load_model(CFG,Weights)
-    Colors=get_colors(Lables)
-
-    while(True):
-
-        # Capture the video frame
-        # by frame
-        ret, frame = vid.read()
-    
-        # Display the resulting frame
-        # cv2.imshow('frame', frame)
-        
-        # the 'q' button is set as the
-        # quitting button you may use any
-        # desired button of your choice
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-        # load our input image and grab its spatial dimensions
-        # image = cv2.imread("./yolo_v3/person.jpg")
-        
-        res=get_predection(frame,nets,Lables,Colors)
-        image=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-        # # show the output image
-        cv2.imshow("frame", res)
-        # cv2.waitKey()
-
-if __name__== "__main__":
-  main()
